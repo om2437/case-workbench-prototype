@@ -1,0 +1,50 @@
+// Source records behind each fact – mirrors the rows of the synthetic data annex
+// (HiLabs_CaseWorkbench_Annex.xlsx). Keyed by member, then by the source label shown on screen.
+window.REC = {
+  "M-41206": {
+    "Hospital alert": { tab: "02_ADT_Alerts", id: "A-90011, A-90012", rows: [["Admit", "2 Nov 14:20, received 15:05 – diagnosis blank"], ["Discharge", "Sat 7 Nov 11:30"], ["Received", "Sun 8 Nov 06:10 (18.7 h later, weekend batch)"], ["Diagnosis", "I50.23 Acute on chronic systolic heart failure"], ["Disposition", "Home with home health (pending)"], ["Facility", "Lakeside General, MRN LG-301877"]] },
+    "Hospital alerts": { tab: "02_ADT_Alerts", id: "A-90011, A-90012", rows: [["Latest event", "Discharge, Sat 7 Nov 11:30"], ["Received", "Sun 8 Nov 06:10"], ["Feed", "HL7 ADT via health information exchange"]] },
+    "Discharge summary": { tab: "03_Clinical_Docs", id: "D-5101", rows: [["Author", "Lakeside General Hospital"], ["Written", "7 Nov 11:00"], ["Received", "8 Nov 09:40 (~22 h after discharge)"], ["Start", "Sacubitril/valsartan 24/26 mg twice daily"], ["Stop", "Lisinopril (36-hour washout first)"], ["Change", "Furosemide 20 → 40 mg daily"], ["Instruction", "Daily weights; call if > 1 kg/day"]], note: "Medication changes were extracted by the assistant; each one links back to this document." },
+    "Connected scale": { tab: "15_Device_RPM", id: "3 readings", rows: [["7 Nov 18:00", "81.2 kg"], ["8 Nov 07:05", "82.1 kg (+0.9)"], ["9 Nov 06:50", "83.0 kg (+1.8)"], ["Timestamps", "Sent in UTC by the vendor, shown here in local time"]] },
+    "Pharmacy fills": { tab: "05_Pharmacy", id: "4 claims", rows: [["Lisinopril 20 mg", "Paid 30 Oct, 30 days – runs out 29 Nov"], ["Furosemide 20 mg", "Paid 10 Oct, 30 days"], ["Metoprolol 50 mg", "Paid 30 Oct, 30 days"], ["Entresto 24/26 mg", "Rejected 7 Nov – prior authorization required"]] },
+    "Medical claims": { tab: "04_Medical_Claims", id: "C-70011, C-70012", rows: [["Latest paid", "PCP visit 18 Sep, processed 9 Oct (21 days)"], ["2–7 Nov admission", "Not received yet"], ["Data through", "6 Nov"]], note: "Claims are never used to decide what is recent." },
+    "Risk model": { tab: "14_Risk_Gaps", id: "M-41206", rows: [["Score", "0.58 (was 0.55)"], ["Run date", "1 Nov – the day before the admission"], ["Drivers", "Prior heart-failure visits; age 71; CKD 2"]], note: "Shown for context only. The queue ranks on live event rules." },
+    "Social needs screen": { tab: "12_SDOH_Screens", id: "Plan HRA", rows: [["Screened", "14 Jun 2026"], ["Living situation", "Lives with spouse"], ["Transport", "Drives"]] },
+  },
+  "M-43128": {
+    "Your case note": { tab: "13_Case_Notes", id: "Notes 2 Nov and 2 Oct", rows: [["2 Nov 12:40", "Daughter: mom fell last week, wrist in a splint. \"I can't keep doing this alone.\""], ["2 Oct", "Two near-falls at night. Task: home-safety evaluation – still open"]] },
+    "Lab results": { tab: "07_Labs", id: "eGFR (LOINC 62238-1)", rows: [["20 Apr", "38 mL/min/1.73m²"], ["5 Oct", "31 mL/min/1.73m²"], ["Source", "QuickLab feed"]] },
+    "Prior authorization": { tab: "09_Prior_Auth", id: "PA-8501, PA-8502", rows: [["Aide 10 h/week", "Requested 28 Oct – pending 12 days"], ["Deadline", "Standard request: 7 calendar days (CMS-0057-F) – overdue by 5 days"], ["Alert pendant", "Approved 15 Oct – install not confirmed"]] },
+    "Mercy Valley ED note": { tab: "03_Clinical_Docs", id: "D-5501 (MRN MV-55821)", rows: [["Visit", "ED 30 Oct, discharged 21:10"], ["Finding", "Fall at home; distal radius fracture, splinted"], ["Medication", "OTC ibuprofen 400 mg 2–3 times a day"], ["Follow-up", "Orthopedics in 1–2 weeks"], ["Match", "82% – name spelled Elenor, DOB 3 Nov 1942"]] },
+    "Hospital alerts": { tab: "02_ADT_Alerts", id: "A-90031", rows: [["Event", "ED visit 30 Oct 16:45, Mercy Valley"], ["Filed under", "MRN MV-55821 (not the plan record)"], ["Match confidence", "82% – below the 95% auto-link threshold"]] },
+    "Pharmacy fills": { tab: "05_Pharmacy", id: "3 claims", rows: [["Donepezil 10 mg", "Paid 12 Oct"], ["Amlodipine 5 mg", "Paid 12 Oct"], ["Alendronate 70 mg weekly", "Paid 20 Aug, 28 days – ran out 17 Sep"]] },
+    "Social needs screen": { tab: "12_SDOH_Screens", id: "Plan HRA", rows: [["Screened", "20 Apr 2026 (203 days ago)"], ["Living situation", "Lives alone; daughter visits daily"]] },
+    "Caregiver strain screen": { tab: "12_SDOH_Screens", id: "Zarit Burden", rows: [["Status", "Never administered"], ["Signal", "Strain described in the 2 Nov call"]] },
+  },
+  "M-42390": {
+    "Your case note vs. March screen": { tab: "13_Case_Notes + 12_SDOH_Screens", id: "Note 28 Oct · AHC screen 15 Mar", rows: [["Case note 28 Oct", "Staying with sister; landlord says she must leave by ~15 Nov"], ["Screen 15 Mar", "Housing: stable"], ["Conflict", "The note is newer; the screen has not been updated"]] },
+    "Appointments": { tab: "08_Appointments", id: "BH therapy", rows: [["3 Nov", "Therapy, Northfield BH Clinic – no-show"], ["Follow-up", "No task created"], ["19 Nov", "Psychiatry, scheduled"]] },
+    "Pharmacy fills": { tab: "05_Pharmacy", id: "2 claims", rows: [["Sertraline 100 mg", "Paid 28 Sep, 30 days – ran out 28 Oct"], ["Buprenorphine/naloxone", "Weekly fills on time (sensitive)"]] },
+    "Restricted record": { tab: "03_Clinical_Docs", id: "D-5301", rows: [["Program", "Harbor Recovery Services"], ["Status", "Restricted – 42 CFR Part 2"], ["Consent", "Expired 30 Sep 2026"]], note: "Contents stay hidden until she renews consent. Only the record's existence is shown." },
+    "Social needs screen": { tab: "12_SDOH_Screens", id: "AHC HRSN", rows: [["Screened", "15 Mar 2026"], ["Housing", "Stable (contradicted by the 28 Oct note)"], ["Food", "Sometimes worried"]] },
+    "Treatment program": { tab: "03_Clinical_Docs", id: "D-5301", rows: [["Status", "Restricted – consent expired"]] },
+  },
+  "M-42017": {
+    "Hospital alerts vs. claims": { tab: "02_ADT_Alerts + 04_Medical_Claims", id: "5 alerts · 2 claims", rows: [["ED visits (alerts)", "19 Aug, 12 Sep, 3 Oct, 24 Oct, 6 Nov"], ["ED visits (claims)", "19 Aug, 12 Sep only"], ["Duplicate", "6 Nov alert sent twice (A-90024, A-90025) – merged"]] },
+    "Pharmacy fills": { tab: "05_Pharmacy", id: "5 claims", rows: [["Albuterol (rescue)", "Paid 2 Aug, 1 Sep, 1 Oct, 1 Nov – picked up in person"], ["Controller inhaler", "No fill in 12 months"], ["Pharmacy", "CornerCare Pharmacy #22"]] },
+    "Pharmacy profile": { tab: "05_Pharmacy + 10_Contacts", id: "Patient phone field", rows: [["Plan record", "555-0238 – disconnected (verified 1 Sep)"], ["Pharmacy profile", "555-0261 – updated October"], ["Status", "Not yet verified"]] },
+    "ED discharge note": { tab: "03_Clinical_Docs", id: "D-5201", rows: [["Visit", "St. Brigid ED, 24 Oct"], ["Advice", "Start a daily controller inhaler; see PCP within 1 week"], ["Patient said", "Uses rescue inhaler \"most days\""]] },
+    "Hospital alerts": { tab: "02_ADT_Alerts", id: "A-90020 … A-90025", rows: [["Visits", "5 in 90 days"], ["Latest", "6 Nov 23:10, diagnosis blank"]] },
+    "Medical claims": { tab: "04_Medical_Claims", id: "C-70031, C-70032", rows: [["Visits in claims", "2 of 5"], ["Data through", "6 Nov"]] },
+    "Social needs screen": { tab: "12_SDOH_Screens", id: "Plan HRA", rows: [["Screened", "10 Feb 2025 (637 days ago)"], ["Housing", "Unstable"]] },
+  },
+  "M-41583": {
+    "Pharmacy fills": { tab: "05_Pharmacy", id: "Trulicity claims", rows: [["15 Jul", "Paid, 84 days – ran out 7 Oct"], ["20 Oct", "Reversed – never picked up"], ["Copay at reversal", "$95"], ["Metformin", "Paid 5 Oct, on time"]] },
+    "Faxed PDF, read by assistant": { tab: "07_Labs", id: "A1c, 14 Oct", rows: [["Value", "8.9 %"], ["Source", "Fax from Dr. P. Nair's office, read by OCR"], ["LOINC", "None – unstructured"], ["Lab feed latest", "7.4 % (12 Mar)"]], note: "Not counted in trends or care gaps until a clinician confirms it." },
+    "Case note": { tab: "13_Case_Notes", id: "Note 20 Nov 2025", rows: [["Text", "Says Trulicity is 'pricey', will ask doctor. Works at a warehouse days."]] },
+    "Contact history": { tab: "11_Contact_History", id: "3 attempts", rows: [["30 Oct 10:15", "Voicemail (English)"], ["3 Nov 11:40", "Voicemail (English)"], ["5 Nov 14:00", "Wife: call after 5 pm, Spanish better"]] },
+    "Lab feed": { tab: "07_Labs", id: "LOINC 4548-4", rows: [["Latest structured", "7.4 % on 12 Mar"], ["Newer result", "8.9 % on 14 Oct – fax only"]] },
+    "Doctor on file": { tab: "01_Members + 04_Medical_Claims", id: "PCP attribution", rows: [["Eligibility file", "Dr. S. Whitfield"], ["Claims since 15 Sep", "Dr. P. Nair"]] },
+    "Social needs screen": { tab: "12_SDOH_Screens", id: "Plan HRA", rows: [["Screened", "20 Nov 2025 (354 days ago)"], ["Cost of medicines", "Sometimes a problem"]] },
+  },
+};

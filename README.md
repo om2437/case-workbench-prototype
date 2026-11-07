@@ -10,7 +10,7 @@ The problem: a nurse case manager with 48 cases spends most of her day finding d
 
 The prototype has three screens, built around her workflow:
 
-1. **Today** – a ranked queue that says *why now* in plain words. Scores come from transparent, editable rules (click a score). Rank decides the order of work; "Act at" decides when the call happens.
+1. **Today** – a ranked queue that says *why now* in plain words. Scores come from transparent, editable rules (click a score). Priority reflects clinical need; "Act at" fits the call around the member's day.
 2. **Member brief** – what changed since the last contact, medications side by side by source with conflicts flagged, and up to four next best actions. Every fact shows its source and age.
 3. **Call and documentation** – ranked ways to reach the member, one-tap outcomes, a call guide built from accepted actions, and a pre-filled note that is saved only when the nurse signs.
 
@@ -28,7 +28,7 @@ Things to try:
 - Every fact carries its source and age (the small bars fill with freshness; amber means stale).
 - AI drafts, the nurse decides: no automatic record merges below 95%, nothing saved until signed, and AI calls offices and vendors – never members.
 - Capture once: what is said on the call fills the assessment, care plan, tasks and quality measures.
-- Corrections flow back to the data platform, so the data gets cleaner as nurses work.
+- Corrections flow back to HiLabs MCheck, so the data gets cleaner as nurses work.
 
 ## Tech
 

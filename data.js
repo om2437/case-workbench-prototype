@@ -39,7 +39,7 @@ window.WB = {
       id: "M-41206", name: "Raymond Kessler", first: "Raymond", age: 71, plan: "Medicare Advantage HMO", lang: "English",
       pcp: "Dr. L. Abernathy", program: "Transitions of care, heart failure", rank: 1, score: 90,
       signals: [0, 1, 2, 3, 7],
-      modelNote: "Model risk score is 0.58, run on 1 Nov – before this admission. It is shown, not used to rank.",
+      modelNote: "Risk model (0.58) last ran 1 Nov, before this admission.",
       whyNow: "Discharged Saturday and the key heart-failure drug was never dispensed",
       reasons: [["Entresto not dispensed", "crit"], ["Lisinopril still at home", "crit"], ["Weight up 1.8 kg in 37 h", "warn"], ["Cardiology booking unknown", "info"]],
       actAt: { time: "Now", route: "Mobile, English. Include his wife Ruth." },

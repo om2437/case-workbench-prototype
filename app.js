@@ -4,12 +4,16 @@
   const S = {
     matched: {}, rejected: {}, accepted: {}, dismissed: {}, reasonOpen: null, outcome: {}, guide: {}, signed: {},
     open: null, filter: "today", q: "", valueConfirmed: {}, during: {}, texted: {}, notesUsed: false,
-    tour: true, tourMin: false, scoreSeen: false, tasks: [],
+    tour: true, tourMin: false, scoreSeen: false, tasks: [], conf: {}, typed: {}, recSeen: false,
   };
   const view = document.getElementById("view");
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const bars = l => `<span class="bars l${l}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`;
   const prov = (src, age, l) => `<span class="prov ${l === 0 ? "stale" : ""}">${src ? esc(src) + " · " : ""}${esc(age)} ${bars(l)}</span>`;
+  const recFor = (id, key) => (window.REC && REC[id] && REC[id][key]) || null;
+  const provLink = (id, key, src, age, l) => recFor(id, key)
+    ? `<button class="provbtn" data-rec="${esc(key)}" aria-label="Open source record: ${esc(key)}">${prov(src, age, l)}</button>`
+    : prov(src, age, l);
   const st = (t, lvl) => `<span class="st ${lvl}">${esc(t)}</span>`;
   const dn = (n, t) => `dn" data-n="${n}" data-t="${esc(t)}`;
   const topLevel = p => (p.reasons.some(r => r[1] === "crit") ? "crit" : p.reasons.some(r => r[1] === "warn") ? "warn" : "info");
@@ -27,7 +31,8 @@
     { t: "Open a score to see why a member ranks where they do", done: S.scoreSeen, go: "#/today" },
     { t: "Confirm Eleanor Fitzgerald's hospital record", done: !!S.matched["M-43128"] || !!S.rejected["M-43128"], go: "#/brief/M-43128" },
     { t: "Dismiss any next best action and say why", done: Object.keys(S.dismissed).some(k => Object.keys(S.dismissed[k]).length), go: "#/brief/M-41206" },
-    { t: "Call Raymond Kessler and sign the note", done: !!S.signed["M-41206"], go: "#/call/M-41206" },
+    { t: "Open a source label to see the record behind a fact", done: S.recSeen, go: "#/brief/M-41206" },
+    { t: "Call Raymond Kessler, confirm each drafted field, sign", done: !!S.signed["M-41206"], go: "#/call/M-41206" },
     { t: "Text Kayla Moreno, who has no call minutes", done: !!S.texted["M-42390"], go: "#/call/M-42390" },
   ];
   function renderTour() {
@@ -65,7 +70,7 @@
           <table>${p.signals.map(i => `<tr><td>${esc(D.rules[i][0])}</td><td>+${D.rules[i][1]}</td></tr>`).join("")}
           <tr><td><b>Priority score</b></td><td>${p.score}</td></tr></table>
           ${p.modelNote ? `<div class="model">${esc(p.modelNote)}</div>` : ""}
-          <div class="small faint" style="margin-top:6px">Rules are visible and editable by the clinical lead. You can always re-order.</div></div>` : "";
+          <div class="small faint" style="margin-top:6px">Weights set by your clinical lead.</div></div>` : "";
       return `<div class="qrow item ${topLevel(p)} ${S.signed[p.id] ? "isdone" : ""}" data-go="#/brief/${p.id}" tabindex="0" role="link" aria-label="Open ${esc(p.name)}">
         <div class="rank">${p.rank}</div>
         <div class="who"><b>${esc(p.name)}, ${p.age}</b><span>${esc(p.program)}</span></div>
@@ -83,7 +88,7 @@
     view.innerHTML = `
       <div class="topline">
         <div><h1>Good morning, Maria</h1>
-        <p class="lede">${D.now}. ${D.summary.newEvents} new events since Friday (${D.summary.rawAlerts} alerts after removing duplicates). ${D.summary.critical} are time-critical today.</p></div>
+        <p class="lede">${D.now}. ${D.summary.newEvents} new events since Friday. ${D.summary.critical} are time-critical today.</p></div>
         <div class="right"><input class="search" id="search" placeholder="Search name, member ID or phone" aria-label="Search members" value="${esc(S.q)}"></div>
       </div>
       <div class="qgrid">
@@ -91,12 +96,9 @@
           <div class="tabs ${dn(4, "Record matches below 95% and facts the assistant read from faxes wait here. Nothing is merged automatically.")}" role="tablist">
             ${tab("today", "Needs you today", 5)}${tab("confirm", "Awaiting your confirmation", pending)}${tab("unreached", "Unreached", S.signed["M-42017"] ? 0 : 1)}${tab("all", "All cases", D.nurse.active)}
           </div>
-          <div class="qrow qhead"><div>Rank</div><div>Member</div><div class="${dn(1, "Each row leads with a conclusion in plain words, then the 2–4 reasons behind it. Reasons come from combining several data sources. The coloured edge shows the most urgent reason.")}">Why now</div><div class="${dn(3, "Rank decides the order of work; this column decides when the call happens. Fitzgerald is #2 but is called at 12:30, when her daughter can talk.")}">Act at</div><div class="${dn(2, "Click a score to see the rule breakdown. The model's risk score is shown but does not rank.")}">Score</div></div>
+          <div class="qrow qhead"><div>Rank</div><div>Member</div><div class="${dn(1, "Each row leads with a conclusion in plain words, then the 2–4 reasons behind it. Reasons come from combining several data sources. The coloured edge shows the most urgent reason.")}">Why now</div><div class="${dn(3, "Priority is about clinical need; 'Act at' is about the member's life. Eleanor is #2 on need, but her daughter can only talk on her lunch break – so the call is planned for 12:30.")}">Act at</div><div class="${dn(2, "Click a score to see the rule breakdown. The model's risk score is shown but does not rank.")}">Score</div></div>
           <div class="qlist">${rows || empty}</div>
           ${!S.q && (S.filter === "today" || S.filter === "all") ? `<div class="qfoot">${S.filter === "all" ? "43 more cases have no new signal today. 7 routine follow-ups are due this week." : "43 other cases have no new signal today."}</div>` : ""}
-          <div class="feedback ${dn(8, "Every re-order or dismissal asks one question. Rules dismissed often get re-tuned (less alert fatigue). 'Data is wrong' goes back to the data platform as a correction.")}">
-            <b>When you re-order or dismiss, we ask why.</b> Already handled, not clinically relevant, or the data is wrong. Frequently dismissed rules get re-tuned by your clinical lead; data problems go back to the data team as corrections.
-          </div>
         </section>
         <aside class="side">
           <section class="pane day">
@@ -104,9 +106,8 @@
             <ul>${D.plan.map(x => `<li class="${planDone(x) ? "done" : ""}"><time>${x.t}</time><a href="#/${x.why.includes("confirm") ? "brief" : x.why.includes("text") || x.why.includes("call") || x.why.includes("number") ? "call" : "brief"}/${x.id}"><b>${esc(x.what)}</b><span class="muted"> – ${esc(x.why)}</span></a></li>`).join("")}</ul>
           </section>
           <section class="pane assist ${dn(6, "Provider-side voice AI (HiLabs Intelligent Outreach) calls offices, pharmacies and vendors – never members. Results land on the case for review.")}">
-            <div class="pane-h"><h2>Calls the assistant is making</h2></div>
+            <div class="pane-h"><h2>Calls the assistant is making to offices</h2></div>
             <ul>${D.assistant.map(a => `<li><span class="to">${esc(a.to)}</span><div class="row"><span class="muted">${esc(a.task)}</span>${st(S.during["M-41206:Book"] && a.to.startsWith("Northfield") ? "Booked 12 Nov" : a.status, a.level === "ok" || (S.during["M-41206:Book"] && a.to.startsWith("Northfield")) ? "ok" : "info")}</div></li>`).join("")}</ul>
-            <div class="pad small faint" style="padding-top:8px">Offices and vendors only. Never members.</div>
           </section>
           <section class="pane ${dn(7, "Caseload against capacity on the nurse's own screen, so spikes are visible before they hurt.")}">
             <div class="pane-h"><h2>Caseload</h2><span class="aside">${D.nurse.active} of ${D.nurse.capacity}</span></div>
@@ -141,7 +142,7 @@
       { who: "Eleanor Fitzgerald", text: "Home-safety evaluation (opened 2 Oct)", at: "Overdue 38 days", lvl: "crit" },
     ];
     const all = S.tasks.concat(base);
-    view.innerHTML = `<div class="topline"><div><h1>Tasks</h1><p class="lede">Tasks created from accepted actions appear here automatically, with the member they belong to.</p></div></div>
+    view.innerHTML = `<div class="topline"><div><h1>Tasks</h1><p class="lede">Your open tasks.</p></div></div>
       <section class="pane list" style="max-width:860px"><div class="pane-h"><h2>Open tasks</h2><span class="aside">${all.length}</span></div>
       <ul>${all.map(t => `<li><span><span class="when">${esc(t.who)}</span>${esc(t.text)}</span>${st(t.at, t.lvl || (t.at === "Today" ? "ok" : "info"))}</li>`).join("")}</ul></section>`;
   }
@@ -162,7 +163,7 @@
       let body;
       if (a.accept === "Review match" && (S.matched[id] || S.rejected[id])) body = `<div class="done">${st(S.matched[id] ? "Done: record confirmed and linked" : "Done: kept separate", "ok")}</div>`;
       else if (acc[i]) body = `<div class="done">${st("Done: " + a.accept, "ok")}</div>`;
-      else if (dis[i]) body = `<div class="dismissed">Dismissed: ${esc(dis[i])}. ${dis[i] === "data is wrong" ? "Sent to the data team as a correction." : "Logged for rule tuning."}</div>`;
+      else if (dis[i]) body = `<div class="dismissed">Dismissed: ${esc(dis[i])}. ${dis[i] === "data is wrong" ? "Sent for correction." : "Logged for rule tuning."}</div>`;
       else body = `<div class="row"><button class="btn primary sm" data-accept="${i}">${esc(a.accept)}</button><button class="btn quiet sm" data-dismiss="${i}">Dismiss</button></div>
         ${S.reasonOpen === id + ":" + i ? `<div class="reasonbox"><p>Why are you dismissing this?</p><div class="row">
           <button class="btn sm" data-reason="${i}|already handled">Already handled</button><button class="btn sm" data-reason="${i}|not clinically relevant">Not relevant</button><button class="btn sm" data-reason="${i}|data is wrong">Data is wrong</button></div></div>` : ""}`;
@@ -176,19 +177,19 @@
         <dl><dt>Best contact</dt><dd>${esc(p.contact)}</dd><dt>Program</dt><dd>${esc(p.program)}</dd></dl>
         <div class="clocks ${dn(7, "Deadlines that matter sit at the top: the follow-up window, the CMS prior-authorization clock, quality-measure dates.")}">${p.deadlines.map(d => `<div class="clock ${d.level}"><div class="l">${esc(d.label)}</div><div class="v">${esc(d.value)}</div><div class="s">${esc(d.sub)}</div></div>`).join("")}</div>
       </section>
-      ${matchPending ? `<section class="match ${dn(4, "A hospital record matched at 82%. Below 95% the system only suggests – the nurse confirms in seconds, and the fix goes back to the data platform.")}" id="match">
+      ${matchPending ? `<section class="match ${dn(4, "A hospital record matched at 82%. Below 95% the system only suggests – the nurse confirms in seconds, and the fix goes back to HiLabs MCheck so the data improves.")}" id="match">
         <div><h2>A ${esc(p.match.hospital)} record may belong to ${esc(p.first)}</h2>
         <p>${p.match.score}% match. ${esc(p.match.note)} Nothing from this record is shown or merged until you confirm.</p>
         <div class="row" style="display:flex;gap:8px"><button class="btn primary" data-confirm="${id}">Confirm, it's her</button><button class="btn" data-reject="${id}">Not the same person</button></div></div>
         <table><tr><th></th><th>Plan record</th><th>${esc(p.match.hospital)}</th></tr>${p.match.rows.map(r => `<tr class="${r[1] !== r[2] && r[2] !== "Same" && !r[2].startsWith(r[1].split(" ")[0]) ? "diff" : ""}"><td class="muted">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("")}</table>
-      </section>` : p.match && S.matched[id] ? `<div class="banner ok">Record confirmed and linked. The new facts are highlighted below, and the correction was sent to the data platform.</div>`
+      </section>` : p.match && S.matched[id] ? `<div class="banner ok">Hospital record linked. New facts are highlighted below.</div>`
         : p.match && S.rejected[id] ? `<div class="banner">Kept separate. The Mercy Valley record will not be linked to ${esc(p.first)}, and the hospital's data team has been asked to review it.</div>` : ""}
       <div class="bgrid">
         <div class="stack">
           <section class="pane changes ${dn(1, "Above everything else: what changed since the last contact. Drafted by the assistant; every line links to its record.")}">
             <div class="pane-h"><h2>What changed since your last contact</h2><span class="aside">${esc(p.lastContact)}. Drafted from ${changes.length} records – check before acting.</span></div>
-            <ul>${changes.map((c, i) => `<li class="${c.isNew ? "new" : ""}"><span>${c.lock ? '<span class="lock" aria-hidden="true"></span>' : ""}${c.isNew ? "<b>New from linked record. </b>" : ""}${esc(c.text)}${c.confirm ? (S.valueConfirmed[id] ? ` ${st("Confirmed by you", "ok")}` : ` <button class="linkish small" data-confirmvalue="${id}">Confirm value</button>`) : ""}</span><span class="${i === 0 ? dn(2, "Every fact carries its source and age. Bars fill with freshness; amber means stale or untrusted for recency.") : ""}">${prov(c.src, c.age, c.lvl)}</span></li>`).join("")}</ul>
-            <div class="legend">Bars show how fresh each source is: ${bars(4)} today ${bars(3)} this week ${bars(1)} older ${bars(0)} stale or untrusted for recency</div>
+            <ul>${changes.map((c, i) => `<li class="${c.isNew ? "new" : ""}"><span>${c.lock ? '<span class="lock" aria-hidden="true"></span>' : ""}${c.isNew ? "<b>New from linked record. </b>" : ""}${esc(c.text)}${c.confirm ? (S.valueConfirmed[id] ? ` ${st("Confirmed by you", "ok")}` : ` <button class="linkish small" data-confirmvalue="${id}">Confirm value</button>`) : ""}</span><span class="${i === 0 ? dn(2, "Every fact carries its source and age. Bars fill with freshness; amber means stale or untrusted for recency.") : ""}">${provLink(id, c.src, c.src, c.age, c.lvl)}</span></li>`).join("")}</ul>
+            <div class="legend">Click any source to see the record behind it. Bars show how fresh each source is: ${bars(4)} today ${bars(3)} this week ${bars(1)} older ${bars(0)} stale or untrusted for recency</div>
           </section>
           <section class="pane ${dn(3, "Medications side by side by source. Conflicts are flagged, never resolved automatically – the nurse confirms the true list on the call.")}">
             <div class="pane-h"><h2>${esc(p.medsTitle)}</h2><span class="aside">${p.meds.filter(m => m.level === "crit" || m.level === "warn").length} need attention</span></div>
@@ -198,7 +199,7 @@
           <div class="trio">
             <section class="pane list"><div class="pane-h"><h2>Timeline</h2></div><ul>${p.timeline.map(t => `<li><span><span class="when">${esc(t[0])}</span>${esc(S.matched[id] ? t[1].replace(" (record not yet linked)", " – fall, wrist fracture") : t[1])}</span><span class="faint small">${esc(t[2])}</span></li>`).join("")}</ul></section>
             <section class="pane list ${dn(5, "No booking from a practice that doesn't share schedules shows as unknown, never as none – and becomes a task for the assistant.")}"><div class="pane-h"><h2>Services and appointments</h2></div><ul>${p.services.map(s => `<li><span>${esc(s[0])}</span>${(id === "M-41206" && s[0].startsWith("Cardiology") && S.during["M-41206:Book"]) ? st("Booked 12 Nov, 10:30", "ok") : st(s[1], s[2])}</li>`).join("")}</ul></section>
-            <section class="pane list ${dn(6, "Slow sources are labelled. Claims never decide what is recent; a risk score older than the latest event is flagged.")}"><div class="pane-h"><h2>Data sources</h2></div><ul>${p.sources.map(s => { const linked = S.matched[id] && s[1] === "Unmatched record pending"; return `<li><span>${esc(s[0])}</span>${linked ? prov("", "Linked today", 4) : prov("", s[1], s[2])}</li>`; }).join("")}</ul></section>
+            <section class="pane list ${dn(6, "Slow sources are labelled. Claims never decide what is recent; a risk score older than the latest event is flagged.")}"><div class="pane-h"><h2>Data sources</h2></div><ul>${p.sources.map(s => { const linked = S.matched[id] && s[1] === "Unmatched record pending"; return `<li><span>${esc(s[0])}</span>${linked ? provLink(id, s[0], "", "Linked today", 4) : provLink(id, s[0], "", s[1], s[2])}</li>`; }).join("")}</ul></section>
           </div>
         </div>
         <aside class="sticky">
@@ -222,6 +223,7 @@
     const signed = S.signed[id];
     const isText = p.channel === "text";
     const texted = S.texted[id];
+    const conf = S.conf[id] || (S.conf[id] = new Set());
 
     const reach = `<section class="pane ${dn(1, "Ranked routes instead of one phone field: valid number first, authorized representative shown, dead numbers greyed but kept, numbers from other sources marked unverified.")}">
         <div class="pane-h"><h2>How to reach ${esc(p.first)}</h2></div>
@@ -241,25 +243,32 @@
 
     const guideOn = !isText || texted;
     const guide = guideOn ? `<section class="pane guide ${dn(3, "The guide is built from the actions accepted on the brief, so the conversation is spent on judgment, not navigation. Tick a question to record the answer.")}">
-        <div class="pane-h"><h2>${isText ? "Follow-up once she replies" : "Call guide"}</h2><span class="aside">${isText ? "Call or text back" : "From accepted actions. Transcript is opt-in."}</span></div>
+        <div class="pane-h"><h2>${isText ? "Follow-up once she replies" : "Call guide"}</h2><span class="aside">${isText ? "Call or text back" : ""}</span></div>
         <ul>${p.guide.map((q, i) => `<li class="${g.has(i) ? "on" : ""}" data-q="${i}" tabindex="0" role="checkbox" aria-checked="${g.has(i)}"><span class="box"></span><div><div class="q">${esc(q.q)}</div><div class="a">${esc(q.a)}${st(q.tag[0], q.tag[1])}</div></div></li>`).join("")}</ul>
       </section>` : "";
 
-    const during = p.during.length ? `<section class="during ${dn(9, "While Maria is on the phone, the provider-side assistant reports back – here, a verified in-network cardiology slot she can book with the member on the line.")}"><div class="h">Arrived during the call <span>– from the assistant's calls to offices</span></div>${p.during.map(x => { const k = id + ":" + x.cta; return `<div class="it"><span><b>${esc(x.from)}.</b> ${esc(x.text)}</span>${S.during[k] ? st(x.cta === "Book" ? "Booked" : "Done", "ok") : `<button class="btn sm" data-during="${esc(x.cta)}">${esc(x.cta)}</button>`}</div>`; }).join("")}</section>` : "";
+    const during = p.during.length ? `<section class="during ${dn(9, "While Maria is on the phone, the provider-side assistant reports back – here, a verified in-network cardiology slot she can book with the member on the line.")}"><div class="h">Arrived during the call</div>${p.during.map(x => { const k = id + ":" + x.cta; return `<div class="it"><span><b>${esc(x.from)}.</b> ${esc(x.text)}</span>${S.during[k] ? st(x.cta === "Book" ? "Booked" : "Done", "ok") : `<button class="btn sm" data-during="${esc(x.cta)}">${esc(x.cta)}</button>`}</div>`; }).join("")}</section>` : "";
 
     const ready = !isText || texted;
     const doc = `<section class="pane ${dn(5, "The assessment is pre-filled from existing data, each field with its source. Fields the assistant couldn't fill are highlighted.")}">
         <div class="pane-h"><h2>Draft documentation</h2><span class="aside">${esc(d.form)}</span></div>
-        <div class="pad small muted" style="padding-bottom:8px">${d.filled} of ${d.total} fields filled from existing records. ${d.fields.filter(f => !f[1]).length} need you.</div>
-        ${d.fields.map(f => f[1] ? `<div class="field"><span class="muted">${esc(f[0])}</span><span>${esc(f[1])}<span class="src">${esc(f[2])}</span></span></div>` : `<div class="field need"><span>${esc(f[0])}</span><span>Needs you</span></div>`).join("")}
+        <div class="pad small muted" style="padding-bottom:8px">${d.filled} of ${d.total} fields filled from existing records.</div>
+        ${d.fields.map((f, i) => {
+          if (f[1]) {
+            const ok = conf.has(i);
+            return `<div class="field ai ${ok ? "ok" : ""}"><span class="muted">${esc(f[0])}</span><span class="fv">${esc(f[1])}<span class="src">${esc(f[2])}</span>${signed ? "" : ok ? `<span class="st ok">Confirmed</span>` : `<button class="btn sm" data-conf="${i}" ${ready ? "" : "disabled"}>Confirm</button>`}</span></div>`;
+          }
+          return (signed && !((S.typed[id] || {})[i] || "").trim()) ? `<div class="field need"><span class="muted">${esc(f[0])}</span><span class="fv faint">Not assessed on this call</span></div>` : `<div class="field need ${i === d.fields.findIndex(x => !x[1]) ? dn(11, "Clinical judgment fields are never pre-filled by AI. They are optional – not every call assesses function or goals – and an empty field is saved as 'not assessed', never guessed.") : ""}"><label for="need${i}">${esc(f[0])} <span class="small faint">(optional)</span></label><input id="need${i}" data-need="${i}" value="${esc((S.typed[id] || {})[i] || "")}" placeholder="Add if assessed on this call" ${signed || !ready ? "disabled" : ""}></div>`;
+        }).join("")}
         <div class="subh ${dn(4, "Capture once: answers in the conversation flow into the summary, care plan, tasks and audit fields.")}">Summary (draft)</div>
         <div class="summary">${ready ? esc(d.summary) : "The summary is drafted once the conversation starts."}</div>
+        ${ready && !signed ? `<div class="pad" style="padding-bottom:10px">${conf.has("s") ? '<span class="st ok">Summary confirmed</span>' : '<button class="btn sm" data-conf="s">Confirm summary</button>'}</div>` : ""}
         <div class="subh ${dn(7, "Quality measures close as a by-product of documenting the contact – no extra form.")}">This will also update</div>
         ${d.updates.map(u => `<div class="field"><span>${esc(u[0])}</span>${st(u[1] === "closed" ? "Closed" : "Ready", "ok")}</div>`).join("")}
-        <div class="subh ${dn(10, "Corrections made during the contact go back to the data platform, so the next nurse – and every other HiLabs product – sees cleaner data.")}">Corrections sent back to the data platform</div>
+        <div class="subh ${dn(10, "Corrections made during the contact go back to HiLabs MCheck, so the next nurse – and every other HiLabs product – sees cleaner data.")}">Updates to the member record</div>
         ${d.corrections.map(c => `<div class="field"><span>${esc(c[0])}</span><span class="muted">${esc(c[1])}</span></div>`).join("")}
         ${signed ? `<div class="signed">${st(`Signed at ${signed}. Written to the care-management system.`, "ok")} <a class="linkish small" href="#/today">Back to today</a></div>`
-          : `<div class="signrow ${dn(6, "Nothing reaches the plan's care-management system until the nurse signs. Audit-ready for NCQA.")}"><button class="btn primary" data-sign="${id}" ${ready ? "" : "disabled"}>Review and sign</button><span class="small faint">Nothing is saved to the record until you sign.</span></div>`}
+          : `<div class="signrow ${dn(6, "Nothing reaches the plan's care-management system until the nurse signs. Audit-ready for NCQA.")}"><button class="btn primary" id="signBtn" data-sign="${id}" ${canSign(id) ? "" : "disabled"}>Sign and save</button><span class="small faint" id="signHint">${signHint(id)}</span></div>`}
       </section>`;
 
     view.innerHTML = `
@@ -271,6 +280,48 @@
         ${doc}
       </div>`;
   }
+
+  function draftState(id) {
+    const d = byId[id].draft, conf = S.conf[id] || new Set(), typed = S.typed[id] || {};
+    const ai = d.fields.map((f, i) => f[1] ? i : null).filter(i => i !== null);
+    const need = d.fields.map((f, i) => f[1] ? null : i).filter(i => i !== null);
+    const aiLeft = ai.filter(i => !conf.has(i)).length + (conf.has("s") ? 0 : 1);
+    const needLeft = need.filter(i => !(typed[i] || "").trim()).length;
+    return { aiLeft, needLeft };
+  }
+  function canSign(id) { const r = byId[id].channel !== "text" || S.texted[id]; const s = draftState(id); return r && s.aiLeft === 0; }
+  function signHint(id) {
+    const s = draftState(id);
+    if (s.aiLeft === 0) return "Ready. Nothing is saved to the record until you sign.";
+    const bits = [];
+    if (s.aiLeft) bits.push(`confirm ${s.aiLeft} drafted item${s.aiLeft > 1 ? "s" : ""}`);
+    return "To sign: " + bits.join(" and ") + ".";
+  }
+
+  /* ---------------- SOURCE RECORD DRAWER ---------------- */
+  const drawer = document.getElementById("drawer"), scrim = document.getElementById("scrim");
+  let lastFocus = null;
+  function openRec(id, key) {
+    const r = recFor(id, key); if (!r) return;
+    S.recSeen = true; lastFocus = document.activeElement;
+    drawer.innerHTML = `<div class="drawer-h"><div><span class="small faint">Source record</span><h2 id="drawerTitle">${esc(key)}</h2></div><button class="iconbtn" data-close aria-label="Close">×</button></div>
+      <dl class="rec"><dt>Member</dt><dd>${esc(byId[id].name)} · ${id}</dd><dt>Annex tab</dt><dd>${esc(r.tab)}</dd><dt>Record</dt><dd>${esc(r.id)}</dd></dl>
+      <table class="rectable">${r.rows.map(x => `<tr><th>${esc(x[0])}</th><td>${esc(x[1])}</td></tr>`).join("")}</table>
+      ${r.note ? `<p class="recnote">${esc(r.note)}</p>` : ""}
+      <p class="small faint" style="margin-top:16px">Synthetic data. In production, opens the source system.</p>
+      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn sm" data-wrong="${esc(key)}">Flag as wrong</button><button class="btn quiet sm" data-close>Close</button></div>`;
+    drawer.hidden = false; scrim.hidden = false;
+    requestAnimationFrame(() => { drawer.classList.add("on"); drawer.querySelector("[data-close]").focus(); });
+    renderTour();
+  }
+  function closeRec() { drawer.classList.remove("on"); drawer.hidden = true; scrim.hidden = true; if (lastFocus) lastFocus.focus(); }
+  drawer.addEventListener("click", e => {
+    if (e.target.closest("[data-close]")) return closeRec();
+    const w = e.target.closest("[data-wrong]");
+    if (w) { closeRec(); toast("Flagged. Sent for correction."); }
+  });
+  scrim.addEventListener("click", closeRec);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !drawer.hidden) closeRec(); });
 
   /* ---------------- ROUTER & EVENTS ---------------- */
   function route() {
@@ -292,11 +343,13 @@
     const t = e.target.closest("button, [data-go], li[data-q]");
     if (!t) return;
     const id = (location.hash.split("/")[2] || "").split("?")[0];
+    if (t.dataset.rec) { openRec(id, t.dataset.rec); return; }
+    if (t.dataset.conf !== undefined) { const c = S.conf[id] || (S.conf[id] = new Set()); c.add(t.dataset.conf === "s" ? "s" : +t.dataset.conf); rerender(); return; }
     if (t.dataset.filter) { location.hash = t.dataset.filter === "today" ? "#/today" : "#/today?f=" + t.dataset.filter; return; }
     if (t.dataset.score) { e.stopPropagation(); S.open = S.open === t.dataset.score ? null : t.dataset.score; S.scoreSeen = true; rerender(); return; }
     if (e.target.closest("[data-stop]")) return;
     if (t.dataset.go) { location.hash = t.dataset.go; return; }
-    if (t.dataset.confirm) { S.matched[t.dataset.confirm] = true; toast("Record linked. Correction sent to the data platform."); rerender(); return; }
+    if (t.dataset.confirm) { S.matched[t.dataset.confirm] = true; toast("Hospital record linked."); rerender(); return; }
     if (t.dataset.reject) { S.rejected[t.dataset.reject] = true; toast("Kept separate. Hospital record flagged for review."); rerender(); return; }
     if (t.dataset.confirmvalue) { S.valueConfirmed[t.dataset.confirmvalue] = true; toast("A1c 8.9% confirmed. It now counts in his trend and care gaps."); rerender(); return; }
     if (t.dataset.accept !== undefined) {
@@ -310,7 +363,14 @@
     if (t.dataset.q !== undefined) { const g = S.guide[id]; const i = +t.dataset.q; g.has(i) ? g.delete(i) : g.add(i); rerender(); return; }
     if (t.dataset.during) { S.during[id + ":" + t.dataset.during] = true; toast(t.dataset.during === "Book" ? "Booked: cardiology, Thursday 12 Nov, 10:30." : "Added to the call guide."); rerender(); return; }
     if (t.dataset.sendtext) { const ta = document.getElementById("sms"); S.texted[id] = ta ? ta.value : byId[id].textDraft; toast("Text sent. Kayla replied two minutes later."); rerender(); return; }
-    if (t.dataset.sign) { if (!S.outcome[id] && byId[id].channel !== "text") S.outcome[id] = "Connected"; S.signed[id] = id === "M-41206" ? "08:31" : "10:05"; toast("Signed and written to the care-management system."); rerender(); return; }
+    if (t.dataset.sign) { if (!canSign(id)) return; if (!S.outcome[id] && byId[id].channel !== "text") S.outcome[id] = "Connected"; S.signed[id] = id === "M-41206" ? "08:31" : "10:05"; toast("Signed and written to the care-management system."); rerender(); return; }
+  });
+  view.addEventListener("input", e => {
+    const t = e.target.closest("[data-need]"); if (!t) return;
+    const id = (location.hash.split("/")[2] || "").split("?")[0];
+    (S.typed[id] = S.typed[id] || {})[t.dataset.need] = t.value;
+    const b = document.getElementById("signBtn"), h = document.getElementById("signHint");
+    if (b) b.disabled = !canSign(id); if (h) h.textContent = signHint(id);
   });
   view.addEventListener("keydown", e => {
     if (e.key !== "Enter" && e.key !== " ") return;
@@ -339,6 +399,7 @@
   if (demo) {
     D.patients.forEach(p => { S.guide[p.id] = new Set(p.guide.map((_, i) => i)); });
     S.outcome["M-41206"] = "Connected";
+    if (demo === "1") D.patients.forEach(p => { S.conf[p.id] = new Set(p.draft.fields.map((f, i) => f[1] ? i : null).filter(i => i !== null)); });
     if (demo === "open") { S.open = "M-41206"; S.scoreSeen = true; }
   }
   route();

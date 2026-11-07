@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case Workbench – prototype</title>
+<meta name="description" content="Clickable prototype of a case management workbench for health-plan nurses. Synthetic data only.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="proto-bar" role="note">
+  Prototype with synthetic data. Every person, ID and phone number is fictional.
+  <button class="linkish" id="notesToggle" aria-pressed="false">Show design notes</button>
+</div>
+<div class="app">
+  <nav class="rail" aria-label="Main">
+    <a class="brand" href="#/today" aria-label="Case Workbench home"><span class="brand-mark" aria-hidden="true"></span></a>
+    <a class="rail-item" data-nav="today" href="#/today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Today</span></a>
+    <a class="rail-item" data-nav="cases" href="#/today?f=all"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.2.2 3.8 1.8 4.5 4.8"/></svg><span>Cases</span></a>
+    <a class="rail-item" data-nav="tasks" href="#/today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l3.5 3.5L19 6"/></svg><span>Tasks</span></a>
+  </nav>
+  <main id="view" tabindex="-1"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
